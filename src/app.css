@@ -1,0 +1,158 @@
+:root {
+    /** Colors **/
+    /* Source of Truth */
+    --hue: 200; /* Tactical Blue/Slate */
+    --chroma-neutral: 0.01;
+    --chroma-text: 0.005;
+
+    /* Oklch variables */
+    --brightness-base: 60%;
+    --chroma-base: 0.24;
+    --hue-base: var(--hue);
+
+    --brightness-vivid: 70%;
+    --chroma-vivid: 0.4;
+    --hue-vivid: var(--hue);
+
+    /* Backgrounds */
+    --bg-primary: oklch(15% var(--chroma-neutral) var(--hue));
+    --bg-secondary: oklch(20% var(--chroma-neutral) var(--hue));
+    --bg-tertiary: oklch(25% var(--chroma-neutral) var(--hue));
+
+    /* Text */
+    --text-primary: oklch(98% var(--chroma-text) var(--hue));
+    --text-secondary: oklch(85% var(--chroma-text) var(--hue));
+    --text-muted: oklch(55% var(--chroma-text) var(--hue));
+
+    /* Accent */
+    --accent: oklch(var(--brightness-base) var(--chroma-base) var(--hue-base));
+    --accent-hover: oklch(
+        calc(var(--brightness-base) + 5%) var(--chroma-base) var(--hue-base)
+    );
+    --accent-active: oklch(
+        calc(var(--brightness-base) + 10%) var(--chroma-base) var(--hue-base)
+    );
+    --accent-muted: oklch(
+        calc(var(--brightness-base) - 15%) var(--chroma-base) var(--hue-base)
+    );
+
+    /* Borders */
+    --border: oklch(35% var(--chroma-neutral) var(--hue));
+    --border-light: oklch(45% var(--chroma-neutral) var(--hue));
+
+    /* Status colors */
+    --success: oklch(var(--brightness-vivid) var(--chroma-vivid) 145);
+    --warning: oklch(var(--brightness-vivid) var(--chroma-vivid) 100);
+    --error: oklch(var(--brightness-vivid) var(--chroma-vivid) 25);
+
+    /** Dimensions **/
+    /* Golden ratio */
+    --golden-ratio: 1.618;
+
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: calc(var(--spacing-xs) * var(--golden-ratio));
+    --spacing-md: calc(var(--spacing-sm) * var(--golden-ratio));
+    --spacing-lg: calc(var(--spacing-md) * var(--golden-ratio));
+    --spacing-xl: calc(var(--spacing-lg) * var(--golden-ratio));
+    --spacing-2xl: calc(var(--spacing-xl) * var(--golden-ratio));
+
+    /* Border radius */
+    --radius-xs: calc(var(--radius-sm) / var(--golden-ratio));
+    --radius-sm: calc(var(--radius-md) / var(--golden-ratio));
+    --radius-md: 0.5rem;
+    --radius-lg: calc(var(--radius-md) * var(--golden-ratio));
+    --radius-xl: calc(var(--radius-lg) * var(--golden-ratio));
+
+    /** Shadows **/
+    --shadow-sm: 0 0.0625rem 0.125rem 0 rgba(0, 0, 0, 0.4);
+    --shadow-md:
+        0 0.25rem 0.375rem -0.0625rem rgba(0, 0, 0, 0.5),
+        0 0.125rem 0.25rem -0.0625rem rgba(0, 0, 0, 0.3);
+    --shadow-lg:
+        0 0.625rem 0.9375rem -0.1875rem rgba(0, 0, 0, 0.6),
+        0 0.25rem 0.375rem -0.125rem rgba(0, 0, 0, 0.4);
+
+    /** Transitions **/
+    --transition-base: 0.15s ease-in-out;
+}
+
+/** Global Styles **/
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+        Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+}
+
+#app {
+    height: 100%;
+}
+
+/** Link styling **/
+a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-base);
+}
+
+a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+/** Selection styling **/
+::selection {
+    background-color: var(--accent);
+    color: var(--text-primary);
+}
+
+/** Scrollbar styling **/
+::-webkit-scrollbar {
+    width: auto;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: var(--radius-xl);
+
+    /* Add space around thumb */
+    border: 0.25rem solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--border-light);
+}
+
+/* ::-webkit-scrollbar-thumb:active {
+    background-color: var(--accent);
+} */
+
+/* ::-webkit-scrollbar-thumb:window-inactive {
+    background-color: transparent;
+} */
