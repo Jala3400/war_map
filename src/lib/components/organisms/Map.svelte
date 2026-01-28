@@ -2,14 +2,29 @@
     import { onMount, onDestroy } from "svelte";
     import maplibregl from "maplibre-gl";
     import "maplibre-gl/dist/maplibre-gl.css";
+    import { currentStyle } from "$lib/stores/mapStore";
+    import { MAP_STYLES, MapStyle } from "$lib/types/map";
+    import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
 
     let mapContainer: HTMLDivElement;
     let map: maplibregl.Map | undefined;
 
+    $: if (map && $currentStyle) {
+        const styleUrl = MAP_STYLES.find((s) => s.id === $currentStyle)?.url;
+        if (styleUrl) {
+            map.setStyle(styleUrl);
+        }
+    }
+
     onMount(() => {
+        const initialStyle =
+            MAP_STYLES.find((s) => s.id === $currentStyle)?.url ||
+            MAP_STYLES.find((s) => s.id === MapStyle.Dark)?.url ||
+            MAP_STYLES[0].url;
+
         map = new maplibregl.Map({
             container: mapContainer,
-            style: "https://tiles.openfreemap.org/styles/dark",
+            style: initialStyle,
             center: [-3.7038, 40.4168], // Madrid
             zoom: 5,
             attributionControl: false, // Add manually to customize
@@ -32,7 +47,9 @@
     });
 </script>
 
-<div bind:this={mapContainer} class="map-container"></div>
+<div bind:this={mapContainer} class="map-container">
+    <StyleSwitcher />
+</div>
 
 <style>
     .map-container {
@@ -61,7 +78,7 @@
     }
 
     :global(.maplibregl-ctrl-attrib) {
-        background-color: rgba(0, 0, 0, 0.5) !important;
+        background-color: rgba(0, 0, 0, 0.8) !important;
         color: var(--text-muted) !important;
         font-size: 10px !important;
         padding: 2px 8px !important;
