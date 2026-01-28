@@ -51,6 +51,14 @@
             settings: {
                 controlsPosition: "top-left" as const,
             },
+            controls: {
+                helper: {
+                    snapping: {
+                        uiEnabled: true,
+                        active: true,
+                    },
+                },
+            },
         };
 
         // Initialize Geoman AFTER style loads (critical for remote styles)
