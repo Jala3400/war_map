@@ -10,7 +10,7 @@
     let map: maplibregl.Map | undefined;
 
     $: if (map && $currentStyle) {
-        const styleUrl = MAP_STYLES.find((s) => s.id === $currentStyle)?.url;
+        const styleUrl = MAP_STYLES[$currentStyle]?.url;
         if (styleUrl) {
             map.setStyle(styleUrl);
         }
@@ -18,9 +18,9 @@
 
     onMount(() => {
         const initialStyle =
-            MAP_STYLES.find((s) => s.id === $currentStyle)?.url ||
-            MAP_STYLES.find((s) => s.id === MapStyle.Dark)?.url ||
-            MAP_STYLES[0].url;
+            MAP_STYLES[$currentStyle]?.url ||
+            MAP_STYLES[MapStyle.Dark]?.url ||
+            Object.values(MAP_STYLES)[0].url;
 
         map = new maplibregl.Map({
             container: mapContainer,

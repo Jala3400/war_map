@@ -6,30 +6,25 @@ export enum MapStyle {
 }
 
 export interface MapStyleOption {
-    id: MapStyle;
     label: string;
     url: string;
 }
 
-export const MAP_STYLES: MapStyleOption[] = [
-    {
-        id: MapStyle.Bright,
+export const MAP_STYLES: Record<MapStyle, MapStyleOption> = {
+    [MapStyle.Bright]: {
         label: "Bright",
         url: "https://tiles.openfreemap.org/styles/bright",
     },
-    {
-        id: MapStyle.Dark,
+    [MapStyle.Dark]: {
         label: "Dark",
         url: "https://tiles.openfreemap.org/styles/dark",
     },
-    {
-        id: MapStyle.Positron,
+    [MapStyle.Positron]: {
         label: "Positron",
         url: "https://tiles.openfreemap.org/styles/positron",
     },
-    {
-        id: MapStyle.Liberty,
+    [MapStyle.Liberty]: {
         label: "Liberty",
         url: "https://tiles.openfreemap.org/styles/liberty",
     },
-];
+};

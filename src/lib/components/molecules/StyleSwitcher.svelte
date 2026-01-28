@@ -8,10 +8,10 @@
 </script>
 
 <div class="style-switcher">
-    {#each MAP_STYLES as style}
+    {#each Object.entries(MAP_STYLES) as [id, style]}
         <button
-            class:active={$currentStyle === style.id}
-            on:click={() => setStyle(style.id)}
+            class:active={$currentStyle === id}
+            onclick={() => setStyle(id as MapStyle)}
             title={style.label}
         >
             {style.label}
