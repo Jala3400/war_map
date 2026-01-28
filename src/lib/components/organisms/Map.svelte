@@ -9,32 +9,20 @@
     onMount(() => {
         map = new maplibregl.Map({
             container: mapContainer,
-            style: {
-                version: 8,
-                sources: {
-                    osm: {
-                        type: "raster",
-                        tiles: [
-                            "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-                        ],
-                        tileSize: 256,
-                        attribution:
-                            "&copy; OpenStreetMap contributors &copy; CARTO",
-                    },
-                },
-                layers: [
-                    {
-                        id: "osm",
-                        type: "raster",
-                        source: "osm",
-                    },
-                ],
-            },
+            style: "https://tiles.openfreemap.org/styles/dark",
             center: [-3.7038, 40.4168], // Madrid
             zoom: 5,
+            attributionControl: false, // Add manually to customize
         });
 
         map.addControl(new maplibregl.NavigationControl(), "top-right");
+        map.addControl(
+            new maplibregl.AttributionControl({
+                compact: false,
+                customAttribution: "OpenFreeMap",
+            }),
+            "bottom-right",
+        );
     });
 
     onDestroy(() => {
@@ -70,6 +58,23 @@
 
     :global(.maplibregl-ctrl-icon) {
         filter: invert(1) brightness(2);
+    }
+
+    :global(.maplibregl-ctrl-attrib) {
+        background-color: rgba(0, 0, 0, 0.5) !important;
+        color: var(--text-muted) !important;
+        font-size: 10px !important;
+        padding: 2px 8px !important;
+        border-radius: 4px 0 0 0 !important;
+    }
+
+    :global(.maplibregl-ctrl-attrib a) {
+        color: var(--accent) !important;
+        text-decoration: none !important;
+    }
+
+    :global(.maplibregl-ctrl-attrib a:hover) {
+        text-decoration: underline !important;
     }
 
     :global(.maplibregl-compact) {
