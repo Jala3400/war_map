@@ -1,14 +1,16 @@
 <script lang="ts">
     import { currentStyle } from "$lib/stores/mapStore";
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
+    import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css";
     import maplibregl from "maplibre-gl";
     import "maplibre-gl/dist/maplibre-gl.css";
     import { onMount } from "svelte";
     import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
-    import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css"; // Essential for UI
+    import { Geoman } from "@geoman-io/maplibre-geoman-free";
 
     let mapContainer = $state<HTMLDivElement>();
     let map = $state<maplibregl.Map>();
+    let gman = $state<Geoman>();
 
     $effect(() => {
         if (map && $currentStyle) {
@@ -53,8 +55,20 @@
 
         // Initialize Geoman AFTER style loads (critical for remote styles)
         mapInstance.on("style.load", async () => {
-            const { Geoman } = await import("@geoman-io/maplibre-geoman-free");
-            new Geoman(mapInstance, gmOptions);
+            const currentFeatures = gman?.features.exportGeoJson();
+
+            if (gman) {
+                await gman.destroy();
+            }
+
+            const newGman = new Geoman(mapInstance, gmOptions);
+            gman = newGman;
+
+            mapInstance.once("render", () => {
+                if (currentFeatures && currentFeatures.features.length > 0) {
+                    gman?.features.importGeoJson(currentFeatures);
+                }
+            });
         });
 
         map = mapInstance;
