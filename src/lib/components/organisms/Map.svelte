@@ -47,18 +47,7 @@
         // Geoman options
         const gmOptions = {
             settings: {
-                controlsPosition: "top-right" as const,
-            },
-            controls: {
-                draw: {
-                    polygon: { uiEnabled: true },
-                    line: { uiEnabled: true },
-                    marker: { uiEnabled: true },
-                },
-                edit: {
-                    rotate: { uiEnabled: true },
-                    scale: { uiEnabled: true },
-                },
+                controlsPosition: "top-left" as const,
             },
         };
 

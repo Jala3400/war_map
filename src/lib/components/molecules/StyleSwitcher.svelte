@@ -22,7 +22,7 @@
 <style>
     .style-switcher {
         position: absolute;
-        top: var(--spacing-md);
+        bottom: var(--spacing-md);
         left: var(--spacing-md);
         z-index: 10;
         display: flex;
