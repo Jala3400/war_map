@@ -3,26 +3,31 @@
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
     import maplibregl from "maplibre-gl";
     import "maplibre-gl/dist/maplibre-gl.css";
-    import { onDestroy, onMount } from "svelte";
+    import { onMount } from "svelte";
     import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
+    import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css"; // Essential for UI
 
-    let mapContainer: HTMLDivElement;
-    let map: maplibregl.Map | undefined;
+    let mapContainer = $state<HTMLDivElement>();
+    let map = $state<maplibregl.Map>();
 
-    $: if (map && $currentStyle) {
-        const styleUrl = MAP_STYLES[$currentStyle]?.url;
-        if (styleUrl) {
-            map.setStyle(styleUrl);
+    $effect(() => {
+        if (map && $currentStyle) {
+            const styleUrl = MAP_STYLES[$currentStyle]?.url;
+            if (styleUrl) {
+                map.setStyle(styleUrl);
+            }
         }
-    }
+    });
 
     onMount(() => {
+        if (!mapContainer) return;
+
         const initialStyle =
             MAP_STYLES[$currentStyle]?.url ||
             MAP_STYLES[MapStyle.Dark]?.url ||
             Object.values(MAP_STYLES)[0].url;
 
-        map = new maplibregl.Map({
+        const mapInstance = new maplibregl.Map({
             container: mapContainer,
             style: initialStyle,
             center: [-3.7038, 40.4168], // Madrid
@@ -30,20 +35,44 @@
             attributionControl: false, // Add manually to customize
         });
 
-        map.addControl(new maplibregl.NavigationControl(), "top-right");
-        map.addControl(
+        mapInstance.addControl(new maplibregl.NavigationControl(), "top-right");
+        mapInstance.addControl(
             new maplibregl.AttributionControl({
                 compact: false,
                 customAttribution: "OpenFreeMap",
             }),
             "bottom-right",
         );
-    });
 
-    onDestroy(() => {
-        if (map) {
-            map.remove();
-        }
+        // Geoman options
+        const gmOptions = {
+            settings: {
+                controlsPosition: "top-right" as const,
+            },
+            controls: {
+                draw: {
+                    polygon: { uiEnabled: true },
+                    line: { uiEnabled: true },
+                    marker: { uiEnabled: true },
+                },
+                edit: {
+                    rotate: { uiEnabled: true },
+                    scale: { uiEnabled: true },
+                },
+            },
+        };
+
+        // Initialize Geoman AFTER style loads (critical for remote styles)
+        mapInstance.on("style.load", async () => {
+            const { Geoman } = await import("@geoman-io/maplibre-geoman-free");
+            new Geoman(mapInstance, gmOptions);
+        });
+
+        map = mapInstance;
+
+        return () => {
+            mapInstance.remove();
+        };
     });
 </script>
 
