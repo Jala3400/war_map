@@ -43,7 +43,6 @@
         cursor: pointer;
         border-radius: var(--radius-sm);
         text-align: left;
-        font-size: 14px;
         transition: all var(--transition-base);
     }
 

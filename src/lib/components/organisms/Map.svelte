@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { onMount, onDestroy } from "svelte";
-    import maplibregl from "maplibre-gl";
-    import "maplibre-gl/dist/maplibre-gl.css";
     import { currentStyle } from "$lib/stores/mapStore";
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
+    import maplibregl from "maplibre-gl";
+    import "maplibre-gl/dist/maplibre-gl.css";
+    import { onDestroy, onMount } from "svelte";
     import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
 
     let mapContainer: HTMLDivElement;
@@ -80,9 +80,9 @@
     :global(.maplibregl-ctrl-attrib) {
         background-color: rgba(0, 0, 0, 0.8) !important;
         color: var(--text-muted) !important;
-        font-size: 10px !important;
-        padding: 2px 8px !important;
-        border-radius: 4px 0 0 0 !important;
+        font-size: 0.625rem !important;
+        padding: var(--spacing-xs) var(--spacing-sm) !important;
+        border-radius: var(--radius-md) 0 0 0 !important;
     }
 
     :global(.maplibregl-ctrl-attrib a) {
