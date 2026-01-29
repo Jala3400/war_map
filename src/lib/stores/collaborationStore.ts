@@ -25,14 +25,7 @@ export function initCollaboration(room: string) {
     const doc = new Y.Doc();
 
     // Default signaling servers are used if none are provided
-    const provider = new WebrtcProvider(room, doc, {
-        signaling: [
-            'wss://signaling.yjs.dev',
-            'wss://y-webrtc-ckovbas.ondigitalocean.app', // DigitalOcean mirror
-            'wss://y-webrtc-signaling-eu.herokuapp.com',
-            'wss://y-webrtc-signaling-us.herokuapp.com'
-        ],
-    });
+    const provider = new WebrtcProvider(room, doc);
 
     const features = doc.getMap("geojson-features");
 

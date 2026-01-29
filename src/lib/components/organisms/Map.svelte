@@ -128,13 +128,31 @@
             // Sync initial state from Yjs to Geoman
             const syncFromYjs = () => {
                 isApplyingRemoteChange = true;
-                const allRemoteFeatures = Array.from(
-                    yFeatures.values(),
-                ) as GeoJsonImportFeature[];
-                newGman.features.importGeoJson({
-                    type: "FeatureCollection",
-                    features: allRemoteFeatures,
-                });
+                
+                const remoteFeatureIds = new Set(yFeatures.keys());
+                const localFeatures = newGman.features.exportGeoJson().features;
+                const localFeatureIds = new Set(localFeatures.map((f: any) => f.id?.toString()));
+
+                // Remove features that exist locally but not in Yjs
+                for (const localFeature of localFeatures) {
+                    const id = localFeature.id?.toString();
+                    if (id && !remoteFeatureIds.has(id)) {
+                        newGman.features.delete(id);
+                    }
+                }
+
+                // Add or update features from Yjs
+                for (const [id, geojson] of yFeatures.entries()) {
+                    if (localFeatureIds.has(id)) {
+                        // Update existing feature: remove then re-add
+                        newGman.features.delete(id);
+                        newGman.features.importGeoJson(geojson as GeoJsonImportFeature);
+                    } else {
+                        // Add new feature
+                        newGman.features.importGeoJson(geojson as GeoJsonImportFeature);
+                    }
+                }
+
                 isApplyingRemoteChange = false;
             };
 
