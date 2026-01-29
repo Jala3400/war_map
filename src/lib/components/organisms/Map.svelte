@@ -117,6 +117,16 @@
                 }
             });
 
+            mapLib.on("gm:dragend", (e: any) => {
+                if (isApplyingRemoteChange) return;
+                const feature = e.feature;
+                if (!feature) return;
+                const geojson = feature.getGeoJson();
+                if (geojson.id) {
+                    yFeatures.set(geojson.id.toString(), geojson);
+                }
+            });
+
             mapLib.on("gm:remove", (e: FeatureRemovedFwdEvent) => {
                 if (isApplyingRemoteChange) return;
                 const id = e.feature.getGeoJson().id;
