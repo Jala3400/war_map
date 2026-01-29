@@ -89,14 +89,32 @@ export function setupCollaborationBridge(
     mapLib.on("gm:remove", wrapHandler(gmanSync.onRemove));
 
     // Yjs -> Geoman observer
-    const observer = () => {
+    const observer = (event: Y.YMapEvent<any>) => {
+        // IMPORTANT: If the change originated locally, we already have the state in Geoman.
+        // Synchronizing it back would delete the local feature and re-import it,
+        // which destroys Geoman's internal UI state (like editing nodes).
+        if (event.transaction.local) return;
+
         isApplyingRemoteChange = true;
-        syncFromYjs();
+
+        // Only sync the specific keys that changed in the remote transaction
+        event.keysChanged.forEach((key) => {
+            const geojson = yFeatures.get(key);
+            if (geojson) {
+                // Feature added or updated: remove old version and import new one
+                geoman.features.delete(key);
+                geoman.features.importGeoJson(geojson as GeoJsonImportFeature);
+            } else {
+                // Feature removed
+                geoman.features.delete(key);
+            }
+        });
+
         isApplyingRemoteChange = false;
     };
 
     yFeatures.observe(observer);
-    syncFromYjs(); // Initial sync
+    syncFromYjs(); // Initial sync when joining the room
 
     return {
         destroy: () => {
