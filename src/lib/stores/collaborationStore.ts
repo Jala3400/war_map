@@ -27,9 +27,10 @@ export function initCollaboration(room: string) {
     // Default signaling servers are used if none are provided
     const provider = new WebrtcProvider(room, doc, {
         signaling: [
-            "wss://y-webrtc-signaling-eu.herokuapp.com",
-            "wss://y-webrtc-signaling-us.herokuapp.com",
-            "wss://signaling.yjs.dev",
+            'wss://signaling.yjs.dev',
+            'wss://y-webrtc-ckovbas.ondigitalocean.app', // DigitalOcean mirror
+            'wss://y-webrtc-signaling-eu.herokuapp.com',
+            'wss://y-webrtc-signaling-us.herokuapp.com'
         ],
     });
 
