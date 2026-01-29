@@ -3,17 +3,28 @@
     import KeyboardShortcutsHelp from "$lib/components/molecules/KeyboardShortcutsHelp.svelte";
     import NavigationToolbar from "$lib/components/molecules/NavigationToolbar.svelte";
     import StyleSwitcher from "$lib/components/molecules/StyleSwitcher.svelte";
+    import {
+        collaborationStore,
+        initCollaboration,
+    } from "$lib/stores/collaborationStore";
     import { geomanInstance } from "$lib/stores/geomanStore";
     import { currentStyle, mapInstance } from "$lib/stores/mapStore";
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
     import { handleKeyPress } from "$lib/utils/keymapHandler";
-    import { Geoman } from "@geoman-io/maplibre-geoman-free";
+    import {
+        Geoman,
+        type FeatureCreatedFwdEvent,
+        type FeatureRemovedFwdEvent,
+        type FeatureUpdatedFwdEvent,
+        type GeoJsonImportFeature,
+    } from "@geoman-io/maplibre-geoman-free";
     import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css";
     import maplibregl from "maplibre-gl";
     import "maplibre-gl/dist/maplibre-gl.css";
     import { onMount } from "svelte";
 
     let mapContainer = $state<HTMLDivElement>();
+    let isApplyingRemoteChange = false;
 
     $effect(() => {
         if ($mapInstance && $currentStyle) {
@@ -26,6 +37,21 @@
 
     onMount(() => {
         if (!mapContainer) return;
+
+        // Get room from URL or default to random
+        const urlParams = new URLSearchParams(window.location.search);
+        let room = urlParams.get("room");
+        if (!room) {
+            room = `war-map-${Math.random().toString(36).substring(2, 9)}`;
+            urlParams.set("room", room);
+            window.history.replaceState(
+                {},
+                "",
+                `${window.location.pathname}?${urlParams.toString()}`,
+            );
+        }
+
+        const { features: yFeatures, doc: yDoc } = initCollaboration(room)!;
 
         const initialStyle =
             MAP_STYLES[$currentStyle]?.url ||
@@ -70,6 +96,55 @@
                     $geomanInstance?.features.importGeoJson(currentFeatures);
                 }
             });
+
+            // Setup Collaboration Listeners
+            mapLib.on("gm:create", (e: FeatureCreatedFwdEvent) => {
+                if (isApplyingRemoteChange) return;
+                const feature = e.feature;
+                const geojson = feature.getGeoJson();
+                // Ensure ID exists
+                if (!geojson.id) geojson.id = crypto.randomUUID();
+                yFeatures.set(geojson.id.toString(), geojson);
+            });
+
+            mapLib.on("gm:edit", (e: FeatureUpdatedFwdEvent) => {
+                if (isApplyingRemoteChange) return;
+                const feature = e.feature;
+                if (!feature) return;
+                const geojson = feature.getGeoJson();
+                if (geojson.id) {
+                    yFeatures.set(geojson.id.toString(), geojson);
+                }
+            });
+
+            mapLib.on("gm:remove", (e: FeatureRemovedFwdEvent) => {
+                if (isApplyingRemoteChange) return;
+                const id = e.feature.getGeoJson().id;
+                if (id) {
+                    yFeatures.delete(id.toString());
+                }
+            });
+
+            // Sync initial state from Yjs to Geoman
+            const syncFromYjs = () => {
+                isApplyingRemoteChange = true;
+                const allRemoteFeatures = Array.from(
+                    yFeatures.values(),
+                ) as GeoJsonImportFeature[];
+                newGman.features.importGeoJson({
+                    type: "FeatureCollection",
+                    features: allRemoteFeatures,
+                });
+                isApplyingRemoteChange = false;
+            };
+
+            // Watch for remote changes
+            yFeatures.observe(() => {
+                syncFromYjs();
+            });
+
+            // Initial sync
+            syncFromYjs();
         });
 
         mapInstance.set(mapLib);
@@ -81,6 +156,8 @@
         return () => {
             window.removeEventListener("keydown", keydownHandler);
             mapLib.remove();
+            $collaborationStore.provider?.destroy();
+            $collaborationStore.doc?.destroy();
         };
     });
 </script>

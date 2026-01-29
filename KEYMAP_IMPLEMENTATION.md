@@ -1,11 +1,13 @@
 # Keymap Implementation Summary
 
 ## Overview
+
 Added a comprehensive keyboard shortcuts system (keymaps) to the Leaflet/MapLibre map with Geoman drawing tools.
 
 ## Files Created
 
 ### Core System Files
+
 1. **[src/lib/stores/keymapStore.ts](src/lib/stores/keymapStore.ts)**
    - Central store for managing keyboard shortcuts
    - Functions: `registerKeymap()`, `unregisterKeymap()`, `clearKeymaps()`
@@ -25,7 +27,8 @@ Added a comprehensive keyboard shortcuts system (keymaps) to the Leaflet/MapLibr
    - Clean, dark-themed UI
 
 ### Documentation
-4. **[docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md)**
+
+1. **[docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md)**
    - Complete documentation of all shortcuts
    - Usage guide for developers
    - Examples of custom keymap registration
@@ -33,26 +36,31 @@ Added a comprehensive keyboard shortcuts system (keymaps) to the Leaflet/MapLibr
 ## Files Modified
 
 ### 1. [src/lib/components/organisms/Map.svelte](src/lib/components/organisms/Map.svelte)
-   - Added keyboard event listener setup
-   - Integrated KeyboardShortcutsHelp component
-   - Properly cleans up listeners on unmount
+
+- Added keyboard event listener setup
+- Integrated KeyboardShortcutsHelp component
+- Properly cleans up listeners on unmount
 
 ### 2. [src/lib/components/molecules/DrawingToolbar.svelte](src/lib/components/molecules/DrawingToolbar.svelte)
-   - Registered keymaps for all drawing tools
-   - Registered keymaps for all editing modes
-   - Added Escape key to cancel active modes
+
+- Registered keymaps for all drawing tools
+- Registered keymaps for all editing modes
+- Added Escape key to cancel active modes
 
 ### 3. [src/lib/components/molecules/NavigationToolbar.svelte](src/lib/components/molecules/NavigationToolbar.svelte)
-   - Registered keymaps for zoom controls
-   - Registered keymap for reset north
+
+- Registered keymaps for zoom controls
+- Registered keymap for reset north
 
 ### 4. [src/lib/index.ts](src/lib/index.ts)
-   - Exported keymap stores and utilities
-   - Made keymaps accessible to consumers
+
+- Exported keymap stores and utilities
+- Made keymaps accessible to consumers
 
 ## Available Keyboard Shortcuts
 
 ### Drawing Tools
+
 - **M** → Draw Marker
 - **C** → Draw Circle
 - **R** → Draw Rectangle
@@ -60,6 +68,7 @@ Added a comprehensive keyboard shortcuts system (keymaps) to the Leaflet/MapLibr
 - **L** → Draw Line
 
 ### Editing Tools
+
 - **E** → Edit Mode
 - **D** → Drag Mode
 - **T** → Rotate Mode
@@ -67,11 +76,13 @@ Added a comprehensive keyboard shortcuts system (keymaps) to the Leaflet/MapLibr
 - **Delete** → Remove Mode
 
 ### Navigation
+
 - **+** or **=** → Zoom In
 - **-** → Zoom Out
 - **N** → Reset North
 
 ### General
+
 - **S** → Toggle Snap
 - **Escape** → Cancel Active Mode
 - **?** (Shift+/) → Show/Hide Help
@@ -89,7 +100,7 @@ Added a comprehensive keyboard shortcuts system (keymaps) to the Leaflet/MapLibr
 
 ## Architecture
 
-```
+```txt
 ┌─────────────────────────────────────────┐
 │            User Keyboard Input           │
 └──────────────┬──────────────────────────┘
@@ -121,11 +132,13 @@ Added a comprehensive keyboard shortcuts system (keymaps) to the Leaflet/MapLibr
 ## Usage Example
 
 ### For End Users
+
 1. Press **?** to see all available shortcuts
 2. Use letter keys for quick tool switching
 3. Press **Escape** to cancel any active mode
 
 ### For Developers
+
 ```typescript
 import { registerKeymap } from "$lib/stores/keymapStore";
 
