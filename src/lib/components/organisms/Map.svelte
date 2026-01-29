@@ -99,56 +99,6 @@
         background-color: var(--bg-primary);
     }
 
-    :global(.maplibregl-ctrl-group) {
-        background-color: var(--bg-secondary) !important;
-        border: 1px solid var(--border) !important;
-        box-shadow: var(--shadow-lg) !important;
-        border-radius: var(--radius-md) !important;
-    }
-
-    :global(.maplibregl-ctrl-group button) {
-        background-color: var(--bg-secondary) !important;
-        width: 2rem !important;
-        height: 2rem !important;
-        border: none !important;
-        border-bottom: 1px solid var(--border) !important;
-        transition: all var(--transition-base) !important;
-    }
-
-    :global(.maplibregl-ctrl-group button:last-child) {
-        border-bottom: none !important;
-    }
-
-    :global(.maplibregl-ctrl-group button:hover) {
-        background-color: var(--bg-tertiary) !important;
-    }
-
-    :global(.maplibregl-ctrl-group button:active) {
-        background-color: var(--accent) !important;
-    }
-
-    /* Icons styling */
-    :global(.maplibregl-ctrl-icon) {
-        filter: invert(1) brightness(1.5) contrast(0.8);
-        opacity: 0.7;
-        transition: opacity var(--transition-base);
-    }
-
-    :global(.maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon) {
-        opacity: 1;
-        filter: invert(1) brightness(2);
-    }
-
-    /* Geoman Specific Overrides */
-    :global(.maplibregl-ctrl-group button.active) {
-        background-color: var(--accent) !important;
-    }
-
-    :global(.maplibregl-ctrl-group button.active .maplibregl-ctrl-icon) {
-        filter: brightness(0) invert(1);
-        opacity: 1;
-    }
-
     /* Attribution Styling */
     :global(.maplibregl-ctrl-attrib) {
         background-color: var(--bg-secondary) !important;
