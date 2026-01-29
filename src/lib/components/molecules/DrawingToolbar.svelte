@@ -11,8 +11,10 @@
     import CutIcon from "../atoms/icons/CutIcon.svelte";
     import RotateIcon from "../atoms/icons/RotateIcon.svelte";
     import DragIcon from "../atoms/icons/DragIcon.svelte";
+    import SnapIcon from "../atoms/icons/SnapIcon.svelte";
 
     let activeMode = $state<string | null>(null);
+    let snapEnabled = $state<boolean>(false);
 
     // Drawing modes (lowercase as per Geoman API)
     const drawingModes = [
@@ -125,6 +127,18 @@
                 break;
         }
     }
+
+    function toggleSnap() {
+        if (!$geomanInstance) return;
+        
+        if (snapEnabled) {
+            $geomanInstance.disableMode("helper", "snapping");
+            snapEnabled = false;
+        } else {
+            $geomanInstance.enableMode("helper", "snapping");
+            snapEnabled = true;
+        }
+    }
 </script>
 
 <div class="toolbar">
@@ -156,6 +170,20 @@
             </IconButton>
         {/each}
     </div>
+
+    <!-- Separator -->
+    <div class="separator"></div>
+
+    <!-- Helper Tools -->
+    <div class="tool-group">
+        <IconButton
+            active={snapEnabled}
+            title="Toggle Snap to Nodes"
+            onclick={toggleSnap}
+        >
+            <SnapIcon size={16} />
+        </IconButton>
+    </div>
 </div>
 
 <style>
@@ -179,8 +207,8 @@
     }
 
     .separator {
-        height: 1px;
-        background-color: var(--border);
-        margin: 0;
+        height: 2px;
+        background-color: var(--border-light);
+        margin: var(--spacing-xs) 0;
     }
 </style>
