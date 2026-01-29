@@ -44,6 +44,7 @@
         cursor: pointer;
         transition: all var(--transition-base);
         opacity: 0.7;
+        outline: none;
     }
 
     .icon-button:last-child {
