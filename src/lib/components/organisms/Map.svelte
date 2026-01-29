@@ -1,6 +1,6 @@
 <script lang="ts">
     import { geomanInstance } from "$lib/stores/geomanStore";
-    import { currentStyle } from "$lib/stores/mapStore";
+    import { currentStyle, mapInstance } from "$lib/stores/mapStore";
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
     import { Geoman } from "@geoman-io/maplibre-geoman-free";
     import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css";
@@ -12,13 +12,12 @@
     import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
 
     let mapContainer = $state<HTMLDivElement>();
-    let map = $state<maplibregl.Map>();
 
     $effect(() => {
-        if (map && $currentStyle) {
+        if ($mapInstance && $currentStyle) {
             const styleUrl = MAP_STYLES[$currentStyle]?.url;
             if (styleUrl) {
-                map.setStyle(styleUrl);
+                $mapInstance.setStyle(styleUrl);
             }
         }
     });
@@ -31,7 +30,7 @@
             MAP_STYLES[MapStyle.Dark]?.url ||
             Object.values(MAP_STYLES)[0].url;
 
-        const mapInstance = new maplibregl.Map({
+        const mapLib = new maplibregl.Map({
             container: mapContainer,
             style: initialStyle,
             center: [-3.7038, 40.4168], // Madrid
@@ -39,7 +38,7 @@
             attributionControl: false, // Add manually to customize
         });
 
-        mapInstance.addControl(
+        mapLib.addControl(
             new maplibregl.AttributionControl({
                 compact: false,
                 customAttribution: "OpenFreeMap",
@@ -54,34 +53,34 @@
         };
 
         // Initialize Geoman AFTER style loads (critical for remote styles)
-        mapInstance.on("style.load", async () => {
+        mapLib.on("style.load", async () => {
             const currentFeatures = $geomanInstance?.features.exportGeoJson();
 
             if ($geomanInstance) {
                 await $geomanInstance.destroy();
             }
 
-            const newGman = new Geoman(mapInstance, gmOptions);
+            const newGman = new Geoman(mapLib, gmOptions);
             geomanInstance.set(newGman);
 
-            mapInstance.once("render", () => {
+            mapLib.once("render", () => {
                 if (currentFeatures && currentFeatures.features.length > 0) {
                     $geomanInstance?.features.importGeoJson(currentFeatures);
                 }
             });
         });
 
-        map = mapInstance;
+        mapInstance.set(mapLib);
 
         return () => {
-            mapInstance.remove();
+            mapLib.remove();
         };
     });
 </script>
 
 <div bind:this={mapContainer} class="map-container">
     <DrawingToolbar />
-    <NavigationToolbar {map} />
+    <NavigationToolbar />
     <StyleSwitcher />
 </div>
 

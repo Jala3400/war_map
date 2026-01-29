@@ -1,43 +1,41 @@
 <script lang="ts">
-    import type maplibregl from "maplibre-gl";
+    import { mapInstance } from "$lib/stores/mapStore";
     import IconButton from "../atoms/IconButton.svelte";
     import CompassIcon from "../atoms/icons/CompassIcon.svelte";
     import MinusIcon from "../atoms/icons/MinusIcon.svelte";
     import PlusIcon from "../atoms/icons/PlusIcon.svelte";
 
-    let { map }: { map: maplibregl.Map | undefined } = $props();
-
     let bearing = $state(0);
 
     $effect(() => {
-        if (!map) return;
+        if (!$mapInstance) return;
 
         const updateRotation = () => {
-            bearing = map.getBearing();
+            bearing = $mapInstance.getBearing();
         };
 
-        map.on("rotate", updateRotation);
+        $mapInstance.on("rotate", updateRotation);
         // Initial value
         updateRotation();
 
         return () => {
-            map.off("rotate", updateRotation);
+            $mapInstance.off("rotate", updateRotation);
         };
     });
 
     function zoomIn() {
-        if (!map) return;
-        map.zoomIn();
+        if (!$mapInstance) return;
+        $mapInstance.zoomIn();
     }
 
     function zoomOut() {
-        if (!map) return;
-        map.zoomOut();
+        if (!$mapInstance) return;
+        $mapInstance.zoomOut();
     }
 
     function resetNorth() {
-        if (!map) return;
-        map.resetNorth();
+        if (!$mapInstance) return;
+        $mapInstance.resetNorth();
     }
 </script>
 
