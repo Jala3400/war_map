@@ -8,6 +8,7 @@
     import "maplibre-gl/dist/maplibre-gl.css";
     import { onMount } from "svelte";
     import DrawingToolbar from "../molecules/DrawingToolbar.svelte";
+    import NavigationToolbar from "../molecules/NavigationToolbar.svelte";
     import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
 
     let mapContainer = $state<HTMLDivElement>();
@@ -38,7 +39,6 @@
             attributionControl: false, // Add manually to customize
         });
 
-        mapInstance.addControl(new maplibregl.NavigationControl(), "top-right");
         mapInstance.addControl(
             new maplibregl.AttributionControl({
                 compact: false,
@@ -81,6 +81,7 @@
 
 <div bind:this={mapContainer} class="map-container">
     <DrawingToolbar />
+    <NavigationToolbar {map} />
     <StyleSwitcher />
 </div>
 
