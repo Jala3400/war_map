@@ -14,5 +14,5 @@
     stroke-linejoin="round"
     class={className}
 >
-    <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+    <path d="M12 2L19 21L12 17L5 21L12 2Z"></path>
 </svg>

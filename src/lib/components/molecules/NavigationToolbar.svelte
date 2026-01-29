@@ -7,6 +7,24 @@
 
     let { map }: { map: maplibregl.Map | undefined } = $props();
 
+    let bearing = $state(0);
+
+    $effect(() => {
+        if (!map) return;
+
+        const updateRotation = () => {
+            bearing = map.getBearing();
+        };
+
+        map.on("rotate", updateRotation);
+        // Initial value
+        updateRotation();
+
+        return () => {
+            map.off("rotate", updateRotation);
+        };
+    });
+
     function zoomIn() {
         if (!map) return;
         map.zoomIn();
@@ -38,7 +56,9 @@
 
     <div class="tool-group">
         <IconButton title="Reset North" onclick={resetNorth}>
-            <CompassIcon size={16} />
+            <div style="transform: rotate({-bearing}deg); display: flex;">
+                <CompassIcon size={16} />
+            </div>
         </IconButton>
     </div>
 </div>
