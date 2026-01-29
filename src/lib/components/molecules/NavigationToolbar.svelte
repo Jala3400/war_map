@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { mapInstance } from "$lib/stores/mapStore";
+    import IconButton from "$lib/components/atoms/IconButton.svelte";
+    import CompassIcon from "$lib/components/atoms/icons/CompassIcon.svelte";
+    import MinusIcon from "$lib/components/atoms/icons/MinusIcon.svelte";
+    import PlusIcon from "$lib/components/atoms/icons/PlusIcon.svelte";
     import { registerKeymap } from "$lib/stores/keymapStore";
-    import IconButton from "../atoms/IconButton.svelte";
-    import CompassIcon from "../atoms/icons/CompassIcon.svelte";
-    import MinusIcon from "../atoms/icons/MinusIcon.svelte";
-    import PlusIcon from "../atoms/icons/PlusIcon.svelte";
+    import { mapInstance } from "$lib/stores/mapStore";
 
     let bearing = $state(0);
 

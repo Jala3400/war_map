@@ -1,19 +1,19 @@
 <script lang="ts">
+    import IconButton from "$lib/components/atoms/IconButton.svelte";
+    import CircleIcon from "$lib/components/atoms/icons/CircleIcon.svelte";
+    import CutIcon from "$lib/components/atoms/icons/CutIcon.svelte";
+    import DragIcon from "$lib/components/atoms/icons/DragIcon.svelte";
+    import EditIcon from "$lib/components/atoms/icons/EditIcon.svelte";
+    import LineIcon from "$lib/components/atoms/icons/LineIcon.svelte";
+    import MarkerIcon from "$lib/components/atoms/icons/MarkerIcon.svelte";
+    import PolygonIcon from "$lib/components/atoms/icons/PolygonIcon.svelte";
+    import RectangleIcon from "$lib/components/atoms/icons/RectangleIcon.svelte";
+    import RotateIcon from "$lib/components/atoms/icons/RotateIcon.svelte";
+    import SnapIcon from "$lib/components/atoms/icons/SnapIcon.svelte";
+    import TrashIcon from "$lib/components/atoms/icons/TrashIcon.svelte";
     import { geomanInstance } from "$lib/stores/geomanStore";
-    import { registerKeymap, clearKeymaps } from "$lib/stores/keymapStore";
+    import { clearKeymaps, registerKeymap } from "$lib/stores/keymapStore";
     import { onDestroy } from "svelte";
-    import IconButton from "../atoms/IconButton.svelte";
-    import MarkerIcon from "../atoms/icons/MarkerIcon.svelte";
-    import CircleIcon from "../atoms/icons/CircleIcon.svelte";
-    import PolygonIcon from "../atoms/icons/PolygonIcon.svelte";
-    import LineIcon from "../atoms/icons/LineIcon.svelte";
-    import RectangleIcon from "../atoms/icons/RectangleIcon.svelte";
-    import EditIcon from "../atoms/icons/EditIcon.svelte";
-    import TrashIcon from "../atoms/icons/TrashIcon.svelte";
-    import CutIcon from "../atoms/icons/CutIcon.svelte";
-    import RotateIcon from "../atoms/icons/RotateIcon.svelte";
-    import DragIcon from "../atoms/icons/DragIcon.svelte";
-    import SnapIcon from "../atoms/icons/SnapIcon.svelte";
 
     let activeMode = $state<string | null>(null);
     let snapEnabled = $state<boolean>(true);
@@ -250,7 +250,11 @@
             category: "general",
             handler: () => {
                 if (!$geomanInstance || !activeMode) return;
-                if (["edit", "drag", "rotate", "cut", "remove"].includes(activeMode)) {
+                if (
+                    ["edit", "drag", "rotate", "cut", "remove"].includes(
+                        activeMode,
+                    )
+                ) {
                     disableEditMode(activeMode);
                 } else {
                     $geomanInstance.disableDraw();

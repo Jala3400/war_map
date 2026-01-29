@@ -1,17 +1,17 @@
 <script lang="ts">
+    import DrawingToolbar from "$lib/components/molecules/DrawingToolbar.svelte";
+    import KeyboardShortcutsHelp from "$lib/components/molecules/KeyboardShortcutsHelp.svelte";
+    import NavigationToolbar from "$lib/components/molecules/NavigationToolbar.svelte";
+    import StyleSwitcher from "$lib/components/molecules/StyleSwitcher.svelte";
     import { geomanInstance } from "$lib/stores/geomanStore";
     import { currentStyle, mapInstance } from "$lib/stores/mapStore";
-    import { handleKeyPress } from "$lib/utils/keymapHandler";
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
+    import { handleKeyPress } from "$lib/utils/keymapHandler";
     import { Geoman } from "@geoman-io/maplibre-geoman-free";
     import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css";
     import maplibregl from "maplibre-gl";
     import "maplibre-gl/dist/maplibre-gl.css";
     import { onMount } from "svelte";
-    import DrawingToolbar from "../molecules/DrawingToolbar.svelte";
-    import NavigationToolbar from "../molecules/NavigationToolbar.svelte";
-    import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
-    import KeyboardShortcutsHelp from "../molecules/KeyboardShortcutsHelp.svelte";
 
     let mapContainer = $state<HTMLDivElement>();
 
