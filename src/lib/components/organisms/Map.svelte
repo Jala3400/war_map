@@ -10,21 +10,16 @@
     import { geomanInstance } from "$lib/stores/geomanStore";
     import { currentStyle, mapInstance } from "$lib/stores/mapStore";
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
+    import { setupCollaborationBridge } from "$lib/utils/collaborationBridge";
     import { handleKeyPress } from "$lib/utils/keymapHandler";
-    import {
-        Geoman,
-        type FeatureCreatedFwdEvent,
-        type FeatureRemovedFwdEvent,
-        type FeatureUpdatedFwdEvent,
-        type GeoJsonImportFeature,
-    } from "@geoman-io/maplibre-geoman-free";
+    import { getOrCreateRoom } from "$lib/utils/mapUtils";
+    import { Geoman } from "@geoman-io/maplibre-geoman-free";
     import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css";
     import maplibregl from "maplibre-gl";
     import "maplibre-gl/dist/maplibre-gl.css";
     import { onMount } from "svelte";
 
     let mapContainer = $state<HTMLDivElement>();
-    let isApplyingRemoteChange = false;
 
     $effect(() => {
         if ($mapInstance && $currentStyle) {
@@ -38,20 +33,8 @@
     onMount(() => {
         if (!mapContainer) return;
 
-        // Get room from URL or default to random
-        const urlParams = new URLSearchParams(window.location.search);
-        let room = urlParams.get("room");
-        if (!room) {
-            room = `war-map-${Math.random().toString(36).substring(2, 9)}`;
-            urlParams.set("room", room);
-            window.history.replaceState(
-                {},
-                "",
-                `${window.location.pathname}?${urlParams.toString()}`,
-            );
-        }
-
-        const { features: yFeatures, doc: yDoc } = initCollaboration(room)!;
+        const room = getOrCreateRoom();
+        const { features: yFeatures } = initCollaboration(room)!;
 
         const initialStyle =
             MAP_STYLES[$currentStyle]?.url ||
@@ -80,6 +63,8 @@
             },
         };
 
+        let bridgeDestroy: (() => void) | undefined;
+
         // Initialize Geoman AFTER style loads (critical for remote styles)
         mapLib.on("style.load", async () => {
             const currentFeatures = $geomanInstance?.features.exportGeoJson();
@@ -97,104 +82,10 @@
                 }
             });
 
-            // Setup Collaboration Listeners
-            mapLib.on("gm:create", (e: FeatureCreatedFwdEvent) => {
-                if (isApplyingRemoteChange) return;
-                const feature = e.feature;
-                const geojson = feature.getGeoJson();
-                // Ensure ID exists
-                if (!geojson.id) geojson.id = crypto.randomUUID();
-                yFeatures.set(geojson.id.toString(), geojson);
-            });
-
-            mapLib.on("gm:editend", (e: FeatureUpdatedFwdEvent) => {
-                if (isApplyingRemoteChange) return;
-                const feature = e.feature;
-                if (!feature) return;
-                const geojson = feature.getGeoJson();
-                if (geojson.id) {
-                    yFeatures.set(geojson.id.toString(), geojson);
-                }
-            });
-
-            mapLib.on("gm:dragend", (e: any) => {
-                if (isApplyingRemoteChange) return;
-                const feature = e.feature;
-                if (!feature) return;
-                const geojson = feature.getGeoJson();
-                if (geojson.id) {
-                    yFeatures.set(geojson.id.toString(), geojson);
-                }
-            });
-
-            mapLib.on("gm:rotateend", (e: any) => {
-                if (isApplyingRemoteChange) return;
-                const feature = e.feature;
-                if (!feature) return;
-                const geojson = feature.getGeoJson();
-                if (geojson.id) {
-                    yFeatures.set(geojson.id.toString(), geojson);
-                }
-            });
-
-            mapLib.on("gm:cut", (e: any) => {
-                if (isApplyingRemoteChange) return;
-                // Cut operation can create multiple features
-                if (e.features && Array.isArray(e.features)) {
-                    for (const feature of e.features) {
-                        const geojson = feature.getGeoJson();
-                        if (!geojson.id) geojson.id = crypto.randomUUID();
-                        yFeatures.set(geojson.id.toString(), geojson);
-                    }
-                }
-            });
-
-            mapLib.on("gm:remove", (e: FeatureRemovedFwdEvent) => {
-                if (isApplyingRemoteChange) return;
-                const id = e.feature.getGeoJson().id;
-                if (id) {
-                    yFeatures.delete(id.toString());
-                }
-            });
-
-            // Sync initial state from Yjs to Geoman
-            const syncFromYjs = () => {
-                isApplyingRemoteChange = true;
-                
-                const remoteFeatureIds = new Set(yFeatures.keys());
-                const localFeatures = newGman.features.exportGeoJson().features;
-                const localFeatureIds = new Set(localFeatures.map((f: any) => f.id?.toString()));
-
-                // Remove features that exist locally but not in Yjs
-                for (const localFeature of localFeatures) {
-                    const id = localFeature.id?.toString();
-                    if (id && !remoteFeatureIds.has(id)) {
-                        newGman.features.delete(id);
-                    }
-                }
-
-                // Add or update features from Yjs
-                for (const [id, geojson] of yFeatures.entries()) {
-                    if (localFeatureIds.has(id)) {
-                        // Update existing feature: remove then re-add
-                        newGman.features.delete(id);
-                        newGman.features.importGeoJson(geojson as GeoJsonImportFeature);
-                    } else {
-                        // Add new feature
-                        newGman.features.importGeoJson(geojson as GeoJsonImportFeature);
-                    }
-                }
-
-                isApplyingRemoteChange = false;
-            };
-
-            // Watch for remote changes
-            yFeatures.observe(() => {
-                syncFromYjs();
-            });
-
-            // Initial sync
-            syncFromYjs();
+            // Setup Collaboration Bridge
+            if (bridgeDestroy) bridgeDestroy();
+            const bridge = setupCollaborationBridge(mapLib, newGman, yFeatures);
+            bridgeDestroy = bridge.destroy;
         });
 
         mapInstance.set(mapLib);
@@ -205,6 +96,7 @@
 
         return () => {
             window.removeEventListener("keydown", keydownHandler);
+            if (bridgeDestroy) bridgeDestroy();
             mapLib.remove();
             $collaborationStore.provider?.destroy();
             $collaborationStore.doc?.destroy();
