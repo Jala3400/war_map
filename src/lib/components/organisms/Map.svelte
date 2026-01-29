@@ -107,7 +107,7 @@
                 yFeatures.set(geojson.id.toString(), geojson);
             });
 
-            mapLib.on("gm:edit", (e: FeatureUpdatedFwdEvent) => {
+            mapLib.on("gm:editend", (e: FeatureUpdatedFwdEvent) => {
                 if (isApplyingRemoteChange) return;
                 const feature = e.feature;
                 if (!feature) return;
@@ -124,6 +124,28 @@
                 const geojson = feature.getGeoJson();
                 if (geojson.id) {
                     yFeatures.set(geojson.id.toString(), geojson);
+                }
+            });
+
+            mapLib.on("gm:rotateend", (e: any) => {
+                if (isApplyingRemoteChange) return;
+                const feature = e.feature;
+                if (!feature) return;
+                const geojson = feature.getGeoJson();
+                if (geojson.id) {
+                    yFeatures.set(geojson.id.toString(), geojson);
+                }
+            });
+
+            mapLib.on("gm:cut", (e: any) => {
+                if (isApplyingRemoteChange) return;
+                // Cut operation can create multiple features
+                if (e.features && Array.isArray(e.features)) {
+                    for (const feature of e.features) {
+                        const geojson = feature.getGeoJson();
+                        if (!geojson.id) geojson.id = crypto.randomUUID();
+                        yFeatures.set(geojson.id.toString(), geojson);
+                    }
                 }
             });
 
