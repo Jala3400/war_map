@@ -27,20 +27,20 @@
 
     // Drawing modes (lowercase as per Geoman API)
     const drawingModes = [
-        { id: "marker", icon: MarkerIcon, title: "Draw Marker" },
-        { id: "circle", icon: CircleIcon, title: "Draw Circle" },
-        { id: "rectangle", icon: RectangleIcon, title: "Draw Rectangle" },
-        { id: "polygon", icon: PolygonIcon, title: "Draw Polygon" },
-        { id: "line", icon: LineIcon, title: "Draw Line" },
+        { id: "marker", icon: MarkerIcon, title: "Draw Marker (M)" },
+        { id: "circle", icon: CircleIcon, title: "Draw Circle (C)" },
+        { id: "rectangle", icon: RectangleIcon, title: "Draw Rectangle (R)" },
+        { id: "polygon", icon: PolygonIcon, title: "Draw Polygon (P)" },
+        { id: "line", icon: LineIcon, title: "Draw Line (L)" },
     ];
 
     // Edit modes
     const editModes = [
-        { id: "edit", icon: EditIcon, title: "Edit Mode" },
-        { id: "drag", icon: DragIcon, title: "Drag Mode" },
-        { id: "rotate", icon: RotateIcon, title: "Rotate Mode" },
-        { id: "cut", icon: CutIcon, title: "Cut Polygon" },
-        { id: "remove", icon: TrashIcon, title: "Remove Mode" },
+        { id: "edit", icon: EditIcon, title: "Edit Mode (E)" },
+        { id: "drag", icon: DragIcon, title: "Drag Mode (D)" },
+        { id: "rotate", icon: RotateIcon, title: "Rotate Mode (T)" },
+        { id: "cut", icon: CutIcon, title: "Cut Polygon (X)" },
+        { id: "remove", icon: TrashIcon, title: "Remove Mode (Delete)" },
     ];
 
     function toggleDrawMode(mode: string) {
@@ -306,7 +306,7 @@
     <div class="tool-group">
         <IconButton
             active={snapEnabled}
-            title="Toggle Snap to Nodes"
+            title="Toggle Snap to Nodes (S)"
             onclick={toggleSnap}
         >
             <SnapIcon size={16} />

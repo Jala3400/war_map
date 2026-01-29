@@ -77,10 +77,10 @@
 
 <div class="navigation-toolbar">
     <div class="tool-group">
-        <IconButton title="Zoom In" onclick={zoomIn}>
+        <IconButton title="Zoom In (+)" onclick={zoomIn}>
             <PlusIcon size={16} />
         </IconButton>
-        <IconButton title="Zoom Out" onclick={zoomOut}>
+        <IconButton title="Zoom Out (-)" onclick={zoomOut}>
             <MinusIcon size={16} />
         </IconButton>
     </div>
@@ -89,7 +89,7 @@
     <div class="separator"></div>
 
     <div class="tool-group">
-        <IconButton title="Reset North" onclick={resetNorth}>
+        <IconButton title="Reset North (N)" onclick={resetNorth}>
             <div style="transform: rotate({-bearing}deg); display: flex;">
                 <CompassIcon size={16} />
             </div>
