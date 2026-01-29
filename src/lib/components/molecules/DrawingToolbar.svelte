@@ -14,7 +14,14 @@
     import SnapIcon from "../atoms/icons/SnapIcon.svelte";
 
     let activeMode = $state<string | null>(null);
-    let snapEnabled = $state<boolean>(false);
+    let snapEnabled = $state<boolean>(true);
+
+    // Enable snapping when geoman instance is ready
+    $effect(() => {
+        if ($geomanInstance && snapEnabled) {
+            $geomanInstance.enableMode("helper", "snapping");
+        }
+    });
 
     // Drawing modes (lowercase as per Geoman API)
     const drawingModes = [
@@ -130,7 +137,7 @@
 
     function toggleSnap() {
         if (!$geomanInstance) return;
-        
+
         if (snapEnabled) {
             $geomanInstance.disableMode("helper", "snapping");
             snapEnabled = false;
@@ -209,6 +216,5 @@
     .separator {
         height: 2px;
         background-color: var(--border-light);
-        margin: var(--spacing-xs) 0;
     }
 </style>
