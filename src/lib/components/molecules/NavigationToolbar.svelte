@@ -1,5 +1,6 @@
 <script lang="ts">
     import { mapInstance } from "$lib/stores/mapStore";
+    import { registerKeymap } from "$lib/stores/keymapStore";
     import IconButton from "../atoms/IconButton.svelte";
     import CompassIcon from "../atoms/icons/CompassIcon.svelte";
     import MinusIcon from "../atoms/icons/MinusIcon.svelte";
@@ -37,6 +38,41 @@
         if (!$mapInstance) return;
         $mapInstance.resetNorth();
     }
+
+    // Register navigation keymaps
+    $effect(() => {
+        registerKeymap({
+            id: "zoom-in",
+            key: "+",
+            description: "Zoom In",
+            category: "navigation",
+            handler: zoomIn,
+        });
+
+        registerKeymap({
+            id: "zoom-in-equals",
+            key: "=",
+            description: "Zoom In",
+            category: "navigation",
+            handler: zoomIn,
+        });
+
+        registerKeymap({
+            id: "zoom-out",
+            key: "-",
+            description: "Zoom Out",
+            category: "navigation",
+            handler: zoomOut,
+        });
+
+        registerKeymap({
+            id: "reset-north",
+            key: "n",
+            description: "Reset North",
+            category: "navigation",
+            handler: resetNorth,
+        });
+    });
 </script>
 
 <div class="navigation-toolbar">

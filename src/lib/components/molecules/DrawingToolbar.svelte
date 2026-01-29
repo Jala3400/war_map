@@ -1,5 +1,7 @@
 <script lang="ts">
     import { geomanInstance } from "$lib/stores/geomanStore";
+    import { registerKeymap, clearKeymaps } from "$lib/stores/keymapStore";
+    import { onDestroy } from "svelte";
     import IconButton from "../atoms/IconButton.svelte";
     import MarkerIcon from "../atoms/icons/MarkerIcon.svelte";
     import CircleIcon from "../atoms/icons/CircleIcon.svelte";
@@ -146,6 +148,121 @@
             snapEnabled = true;
         }
     }
+
+    // Register keymaps
+    $effect(() => {
+        // Drawing mode shortcuts
+        registerKeymap({
+            id: "draw-marker",
+            key: "m",
+            description: "Draw Marker",
+            category: "drawing",
+            handler: () => toggleDrawMode("marker"),
+        });
+
+        registerKeymap({
+            id: "draw-circle",
+            key: "c",
+            description: "Draw Circle",
+            category: "drawing",
+            handler: () => toggleDrawMode("circle"),
+        });
+
+        registerKeymap({
+            id: "draw-rectangle",
+            key: "r",
+            description: "Draw Rectangle",
+            category: "drawing",
+            handler: () => toggleDrawMode("rectangle"),
+        });
+
+        registerKeymap({
+            id: "draw-polygon",
+            key: "p",
+            description: "Draw Polygon",
+            category: "drawing",
+            handler: () => toggleDrawMode("polygon"),
+        });
+
+        registerKeymap({
+            id: "draw-line",
+            key: "l",
+            description: "Draw Line",
+            category: "drawing",
+            handler: () => toggleDrawMode("line"),
+        });
+
+        // Edit mode shortcuts
+        registerKeymap({
+            id: "edit-mode",
+            key: "e",
+            description: "Edit Mode",
+            category: "editing",
+            handler: () => toggleEditMode("edit"),
+        });
+
+        registerKeymap({
+            id: "drag-mode",
+            key: "d",
+            description: "Drag Mode",
+            category: "editing",
+            handler: () => toggleEditMode("drag"),
+        });
+
+        registerKeymap({
+            id: "rotate-mode",
+            key: "t",
+            description: "Rotate Mode",
+            category: "editing",
+            handler: () => toggleEditMode("rotate"),
+        });
+
+        registerKeymap({
+            id: "cut-mode",
+            key: "x",
+            description: "Cut Polygon",
+            category: "editing",
+            handler: () => toggleEditMode("cut"),
+        });
+
+        registerKeymap({
+            id: "remove-mode",
+            key: "Delete",
+            description: "Remove Mode",
+            category: "editing",
+            handler: () => toggleEditMode("remove"),
+        });
+
+        // Helper tools
+        registerKeymap({
+            id: "toggle-snap",
+            key: "s",
+            description: "Toggle Snap",
+            category: "general",
+            handler: toggleSnap,
+        });
+
+        // Escape to cancel
+        registerKeymap({
+            id: "cancel-mode",
+            key: "Escape",
+            description: "Cancel Active Mode",
+            category: "general",
+            handler: () => {
+                if (!$geomanInstance || !activeMode) return;
+                if (["edit", "drag", "rotate", "cut", "remove"].includes(activeMode)) {
+                    disableEditMode(activeMode);
+                } else {
+                    $geomanInstance.disableDraw();
+                }
+                activeMode = null;
+            },
+        });
+    });
+
+    onDestroy(() => {
+        clearKeymaps();
+    });
 </script>
 
 <div class="toolbar">

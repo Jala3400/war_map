@@ -1,6 +1,7 @@
 <script lang="ts">
     import { geomanInstance } from "$lib/stores/geomanStore";
     import { currentStyle, mapInstance } from "$lib/stores/mapStore";
+    import { handleKeyPress } from "$lib/utils/keymapHandler";
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
     import { Geoman } from "@geoman-io/maplibre-geoman-free";
     import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css";
@@ -10,6 +11,7 @@
     import DrawingToolbar from "../molecules/DrawingToolbar.svelte";
     import NavigationToolbar from "../molecules/NavigationToolbar.svelte";
     import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
+    import KeyboardShortcutsHelp from "../molecules/KeyboardShortcutsHelp.svelte";
 
     let mapContainer = $state<HTMLDivElement>();
 
@@ -72,7 +74,12 @@
 
         mapInstance.set(mapLib);
 
+        // Setup keyboard event listener
+        const keydownHandler = (e: KeyboardEvent) => handleKeyPress(e);
+        window.addEventListener("keydown", keydownHandler);
+
         return () => {
+            window.removeEventListener("keydown", keydownHandler);
             mapLib.remove();
         };
     });
@@ -82,6 +89,7 @@
     <DrawingToolbar />
     <NavigationToolbar />
     <StyleSwitcher />
+    <KeyboardShortcutsHelp />
 </div>
 
 <style>
