@@ -1,0 +1,186 @@
+<script lang="ts">
+    import { geomanInstance } from "$lib/stores/geomanStore";
+    import IconButton from "../atoms/IconButton.svelte";
+    import MarkerIcon from "../atoms/icons/MarkerIcon.svelte";
+    import CircleIcon from "../atoms/icons/CircleIcon.svelte";
+    import PolygonIcon from "../atoms/icons/PolygonIcon.svelte";
+    import LineIcon from "../atoms/icons/LineIcon.svelte";
+    import RectangleIcon from "../atoms/icons/RectangleIcon.svelte";
+    import EditIcon from "../atoms/icons/EditIcon.svelte";
+    import TrashIcon from "../atoms/icons/TrashIcon.svelte";
+    import CutIcon from "../atoms/icons/CutIcon.svelte";
+    import RotateIcon from "../atoms/icons/RotateIcon.svelte";
+    import DragIcon from "../atoms/icons/DragIcon.svelte";
+
+    let activeMode = $state<string | null>(null);
+
+    // Drawing modes (lowercase as per Geoman API)
+    const drawingModes = [
+        { id: "marker", icon: MarkerIcon, title: "Draw Marker" },
+        { id: "circle", icon: CircleIcon, title: "Draw Circle" },
+        { id: "rectangle", icon: RectangleIcon, title: "Draw Rectangle" },
+        { id: "polygon", icon: PolygonIcon, title: "Draw Polygon" },
+        { id: "line", icon: LineIcon, title: "Draw Line" },
+    ];
+
+    // Edit modes
+    const editModes = [
+        { id: "edit", icon: EditIcon, title: "Edit Mode" },
+        { id: "drag", icon: DragIcon, title: "Drag Mode" },
+        { id: "rotate", icon: RotateIcon, title: "Rotate Mode" },
+        { id: "cut", icon: CutIcon, title: "Cut Polygon" },
+        { id: "remove", icon: TrashIcon, title: "Remove Mode" },
+    ];
+
+    function toggleDrawMode(mode: string) {
+        if (!$geomanInstance) return;
+
+        // If clicking the active mode, disable it
+        if (activeMode === mode) {
+            $geomanInstance.disableDraw();
+            activeMode = null;
+            return;
+        }
+
+        // Disable any active mode first
+        if (activeMode) {
+            if (
+                ["edit", "drag", "rotate", "cut", "remove"].includes(activeMode)
+            ) {
+                disableEditMode(activeMode);
+            } else {
+                $geomanInstance.disableDraw();
+            }
+        }
+
+        // Enable the new drawing mode
+        $geomanInstance.enableDraw(mode as any);
+        activeMode = mode;
+    }
+
+    function toggleEditMode(mode: string) {
+        if (!$geomanInstance) return;
+
+        // If clicking the active mode, disable it
+        if (activeMode === mode) {
+            disableEditMode(mode);
+            activeMode = null;
+            return;
+        }
+
+        // Disable any active mode first
+        if (activeMode) {
+            if (
+                ["edit", "drag", "rotate", "cut", "remove"].includes(activeMode)
+            ) {
+                disableEditMode(activeMode);
+            } else {
+                $geomanInstance.disableDraw();
+            }
+        }
+
+        // Enable the new edit mode
+        enableEditMode(mode);
+        activeMode = mode;
+    }
+
+    function enableEditMode(mode: string) {
+        if (!$geomanInstance) return;
+        switch (mode) {
+            case "edit":
+                $geomanInstance.enableGlobalEditMode();
+                break;
+            case "drag":
+                $geomanInstance.enableGlobalDragMode();
+                break;
+            case "rotate":
+                $geomanInstance.enableGlobalRotateMode();
+                break;
+            case "cut":
+                $geomanInstance.enableGlobalCutMode();
+                break;
+            case "remove":
+                $geomanInstance.enableGlobalRemovalMode();
+                break;
+        }
+    }
+
+    function disableEditMode(mode: string) {
+        if (!$geomanInstance) return;
+        switch (mode) {
+            case "edit":
+                $geomanInstance.disableGlobalEditMode();
+                break;
+            case "drag":
+                $geomanInstance.disableGlobalDragMode();
+                break;
+            case "rotate":
+                $geomanInstance.disableGlobalRotateMode();
+                break;
+            case "cut":
+                $geomanInstance.disableGlobalCutMode();
+                break;
+            case "remove":
+                $geomanInstance.disableGlobalRemovalMode();
+                break;
+        }
+    }
+</script>
+
+<div class="toolbar">
+    <!-- Drawing Tools -->
+    <div class="tool-group">
+        {#each drawingModes as mode}
+            <IconButton
+                active={activeMode === mode.id}
+                title={mode.title}
+                onclick={() => toggleDrawMode(mode.id)}
+            >
+                <mode.icon size={16} />
+            </IconButton>
+        {/each}
+    </div>
+
+    <!-- Separator -->
+    <div class="separator"></div>
+
+    <!-- Edit Tools -->
+    <div class="tool-group">
+        {#each editModes as mode}
+            <IconButton
+                active={activeMode === mode.id}
+                title={mode.title}
+                onclick={() => toggleEditMode(mode.id)}
+            >
+                <mode.icon size={16} />
+            </IconButton>
+        {/each}
+    </div>
+</div>
+
+<style>
+    .toolbar {
+        position: absolute;
+        top: var(--spacing-md);
+        left: var(--spacing-md);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+
+    .tool-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .separator {
+        height: 1px;
+        background-color: var(--border);
+        margin: 0;
+    }
+</style>

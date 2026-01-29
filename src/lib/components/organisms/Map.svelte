@@ -1,16 +1,17 @@
 <script lang="ts">
+    import { geomanInstance } from "$lib/stores/geomanStore";
     import { currentStyle } from "$lib/stores/mapStore";
     import { MAP_STYLES, MapStyle } from "$lib/types/map";
+    import { Geoman } from "@geoman-io/maplibre-geoman-free";
     import "@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css";
     import maplibregl from "maplibre-gl";
     import "maplibre-gl/dist/maplibre-gl.css";
     import { onMount } from "svelte";
+    import DrawingToolbar from "../molecules/DrawingToolbar.svelte";
     import StyleSwitcher from "../molecules/StyleSwitcher.svelte";
-    import { Geoman } from "@geoman-io/maplibre-geoman-free";
 
     let mapContainer = $state<HTMLDivElement>();
     let map = $state<maplibregl.Map>();
-    let gman = $state<Geoman>();
 
     $effect(() => {
         if (map && $currentStyle) {
@@ -46,35 +47,26 @@
             "bottom-right",
         );
 
-        // Geoman options
         const gmOptions = {
             settings: {
-                controlsPosition: "top-left" as const,
-            },
-            controls: {
-                helper: {
-                    snapping: {
-                        uiEnabled: true,
-                        active: true,
-                    },
-                },
+                controlsUiEnabledByDefault: false, // Hide all default controls
             },
         };
 
         // Initialize Geoman AFTER style loads (critical for remote styles)
         mapInstance.on("style.load", async () => {
-            const currentFeatures = gman?.features.exportGeoJson();
+            const currentFeatures = $geomanInstance?.features.exportGeoJson();
 
-            if (gman) {
-                await gman.destroy();
+            if ($geomanInstance) {
+                await $geomanInstance.destroy();
             }
 
             const newGman = new Geoman(mapInstance, gmOptions);
-            gman = newGman;
+            geomanInstance.set(newGman);
 
             mapInstance.once("render", () => {
                 if (currentFeatures && currentFeatures.features.length > 0) {
-                    gman?.features.importGeoJson(currentFeatures);
+                    $geomanInstance?.features.importGeoJson(currentFeatures);
                 }
             });
         });
@@ -88,6 +80,7 @@
 </script>
 
 <div bind:this={mapContainer} class="map-container">
+    <DrawingToolbar />
     <StyleSwitcher />
 </div>
 
