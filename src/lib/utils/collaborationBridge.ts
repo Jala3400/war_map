@@ -38,14 +38,37 @@ function createGeomanToYjsSync(yFeatures: Y.Map<any>) {
 }
 
 /**
- * Logic to sync remote Y.js shared state to local Geoman instance
+ * Get local feature IDs from Geoman
  */
-function createYjsToGeomanSync(geoman: Geoman, yFeatures: Y.Map<any>) {
-    return () => {
+function getLocalFeatureIds(geoman: Geoman): Set<string> {
+    const localFeatures = geoman.features.exportGeoJson().features;
+    return new Set(localFeatures.map((f: any) => f.id?.toString()).filter(Boolean));
+}
+
+export function setupCollaborationBridge(
+    mapLib: MapLibreMap,
+    geoman: Geoman,
+    yFeatures: Y.Map<any>,
+) {
+    let isApplyingRemoteChange = false;
+    let geomanReady = false;
+
+    const gmanSync = createGeomanToYjsSync(yFeatures);
+
+    const wrapHandler = (handler: Function) => (e: any) => {
+        if (!isApplyingRemoteChange) handler(e);
+    };
+
+    /**
+     * Full sync from Yjs to Geoman - used on initial load
+     */
+    const syncFromYjs = () => {
+        if (!geomanReady) return;
+
         const remoteFeatureIds = new Set(yFeatures.keys());
         const localFeatures = geoman.features.exportGeoJson().features;
         const localFeatureIds = new Set(
-            localFeatures.map((f: any) => f.id?.toString()),
+            localFeatures.map((f: any) => f.id?.toString()).filter(Boolean),
         );
 
         // Remove local features not in remote
@@ -56,29 +79,19 @@ function createYjsToGeomanSync(geoman: Geoman, yFeatures: Y.Map<any>) {
             }
         }
 
-        // Add or update remote features to local
+        // Add remote features not already in local
         for (const [id, geojson] of yFeatures.entries()) {
-            if (localFeatureIds.has(id)) {
-                geoman.features.delete(id);
+            if (!localFeatureIds.has(id)) {
+                geoman.features.importGeoJson(geojson as GeoJsonImportFeature);
             }
-            geoman.features.importGeoJson(geojson as GeoJsonImportFeature);
         }
     };
-}
 
-export function setupCollaborationBridge(
-    mapLib: MapLibreMap,
-    geoman: Geoman,
-    yFeatures: Y.Map<any>,
-) {
-    let isApplyingRemoteChange = false;
-
-    const gmanSync = createGeomanToYjsSync(yFeatures);
-    const syncFromYjs = createYjsToGeomanSync(geoman, yFeatures);
-
-    const wrapHandler = (handler: Function) => (e: any) => {
-        if (!isApplyingRemoteChange) handler(e);
-    };
+    // Wait for Geoman to be fully loaded before syncing
+    mapLib.once("gm:loaded", () => {
+        geomanReady = true;
+        syncFromYjs();
+    });
 
     // Geoman -> Yjs listeners
     mapLib.on("gm:create", wrapHandler(gmanSync.onCreate));
@@ -90,22 +103,28 @@ export function setupCollaborationBridge(
 
     // Yjs -> Geoman observer
     const observer = (event: Y.YMapEvent<any>) => {
-        // IMPORTANT: If the change originated locally, we already have the state in Geoman.
-        // Synchronizing it back would delete the local feature and re-import it,
-        // which destroys Geoman's internal UI state (like editing nodes).
+        // Skip local changes - we already have them in Geoman
         if (event.transaction.local) return;
+        // Skip if Geoman not ready yet
+        if (!geomanReady) return;
 
         isApplyingRemoteChange = true;
 
-        // Only sync the specific keys that changed in the remote transaction
+        const localFeatureIds = getLocalFeatureIds(geoman);
+
         event.keysChanged.forEach((key) => {
             const geojson = yFeatures.get(key);
+            const existsLocally = localFeatureIds.has(key);
+
             if (geojson) {
-                // Feature added or updated: remove old version and import new one
-                geoman.features.delete(key);
+                // Feature added or updated
+                // Only delete if it exists locally (update case)
+                if (existsLocally) {
+                    geoman.features.delete(key);
+                }
                 geoman.features.importGeoJson(geojson as GeoJsonImportFeature);
-            } else {
-                // Feature removed
+            } else if (existsLocally) {
+                // Feature removed - only delete if we have it locally
                 geoman.features.delete(key);
             }
         });
@@ -114,7 +133,6 @@ export function setupCollaborationBridge(
     };
 
     yFeatures.observe(observer);
-    syncFromYjs(); // Initial sync when joining the room
 
     return {
         destroy: () => {
