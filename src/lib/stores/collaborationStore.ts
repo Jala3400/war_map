@@ -1,4 +1,5 @@
 import { browser } from "$app/environment";
+import type { Feature } from "geojson";
 import { writable } from "svelte/store";
 import * as Y from "yjs";
 import { WebrtcProvider } from "y-webrtc";
@@ -6,7 +7,7 @@ import { WebrtcProvider } from "y-webrtc";
 export interface CollaborationState {
     doc: Y.Doc | null;
     provider: WebrtcProvider | null;
-    features: Y.Map<any> | null;
+    features: Y.Map<Feature> | null;
     roomName: string | null;
 }
 
@@ -27,7 +28,7 @@ export function initCollaboration(room: string) {
     // Default signaling servers are used if none are provided
     const provider = new WebrtcProvider(room, doc);
 
-    const features = doc.getMap("geojson-features");
+    const features = doc.getMap<Feature>("geojson-features");
 
     collaborationStore.set({
         doc,

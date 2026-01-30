@@ -13,10 +13,14 @@
     import TrashIcon from "$lib/components/atoms/icons/TrashIcon.svelte";
     import { geomanInstance } from "$lib/stores/geomanStore";
     import { clearKeymaps, registerKeymap } from "$lib/stores/keymapStore";
+    import type {
+        DrawModeName,
+        EditModeName,
+    } from "@geoman-io/maplibre-geoman-free";
     import { onDestroy, onMount } from "svelte";
 
-    let activeMode = $state<string | null>(null);
-    let snapEnabled = $state<boolean>(true);
+    let activeMode = $state<DrawModeName | EditModeName | null>(null);
+    let snapEnabled = $state(true);
 
     // Enable snapping when geoman instance is ready
     $effect(() => {
@@ -36,14 +40,14 @@
 
     // Edit modes
     const editModes = [
-        { id: "edit", icon: EditIcon, title: "Edit Mode (E)" },
+        { id: "change", icon: EditIcon, title: "Edit Mode (E)" },
         { id: "drag", icon: DragIcon, title: "Drag Mode (D)" },
         { id: "rotate", icon: RotateIcon, title: "Rotate Mode (T)" },
         { id: "cut", icon: CutIcon, title: "Cut Polygon (X)" },
-        { id: "remove", icon: TrashIcon, title: "Remove Mode (Delete)" },
+        { id: "delete", icon: TrashIcon, title: "Remove Mode (Delete)" },
     ];
 
-    function toggleDrawMode(mode: string) {
+    function toggleDrawMode(mode: DrawModeName) {
         if (!$geomanInstance) return;
 
         // If clicking the active mode, disable it
@@ -56,20 +60,22 @@
         // Disable any active mode first
         if (activeMode) {
             if (
-                ["edit", "drag", "rotate", "cut", "remove"].includes(activeMode)
+                ["change", "drag", "rotate", "cut", "delete"].includes(
+                    activeMode,
+                )
             ) {
-                disableEditMode(activeMode);
+                disableEditMode(activeMode as EditModeName);
             } else {
                 $geomanInstance.disableDraw();
             }
         }
 
         // Enable the new drawing mode
-        $geomanInstance.enableDraw(mode as any);
+        $geomanInstance.enableDraw(mode);
         activeMode = mode;
     }
 
-    function toggleEditMode(mode: string) {
+    function toggleEditMode(mode: EditModeName) {
         if (!$geomanInstance) return;
 
         // If clicking the active mode, disable it
@@ -82,9 +88,11 @@
         // Disable any active mode first
         if (activeMode) {
             if (
-                ["edit", "drag", "rotate", "cut", "remove"].includes(activeMode)
+                ["change", "drag", "rotate", "cut", "delete"].includes(
+                    activeMode,
+                )
             ) {
-                disableEditMode(activeMode);
+                disableEditMode(activeMode as EditModeName);
             } else {
                 $geomanInstance.disableDraw();
             }
@@ -95,10 +103,10 @@
         activeMode = mode;
     }
 
-    function enableEditMode(mode: string) {
+    function enableEditMode(mode: EditModeName) {
         if (!$geomanInstance) return;
         switch (mode) {
-            case "edit":
+            case "change":
                 $geomanInstance.enableGlobalEditMode();
                 break;
             case "drag":
@@ -110,16 +118,16 @@
             case "cut":
                 $geomanInstance.enableGlobalCutMode();
                 break;
-            case "remove":
+            case "delete":
                 $geomanInstance.enableGlobalRemovalMode();
                 break;
         }
     }
 
-    function disableEditMode(mode: string) {
+    function disableEditMode(mode: EditModeName) {
         if (!$geomanInstance) return;
         switch (mode) {
-            case "edit":
+            case "change":
                 $geomanInstance.disableGlobalEditMode();
                 break;
             case "drag":
@@ -131,7 +139,7 @@
             case "cut":
                 $geomanInstance.disableGlobalCutMode();
                 break;
-            case "remove":
+            case "delete":
                 $geomanInstance.disableGlobalRemovalMode();
                 break;
         }
@@ -198,7 +206,7 @@
             key: "e",
             description: "Edit Mode",
             category: "editing",
-            handler: () => toggleEditMode("edit"),
+            handler: () => toggleEditMode("change"),
         });
 
         registerKeymap({
@@ -230,7 +238,7 @@
             key: "Delete",
             description: "Remove Mode",
             category: "editing",
-            handler: () => toggleEditMode("remove"),
+            handler: () => toggleEditMode("delete"),
         });
 
         // Helper tools
@@ -251,11 +259,11 @@
             handler: () => {
                 if (!$geomanInstance || !activeMode) return;
                 if (
-                    ["edit", "drag", "rotate", "cut", "remove"].includes(
+                    ["change", "drag", "rotate", "cut", "delete"].includes(
                         activeMode,
                     )
                 ) {
-                    disableEditMode(activeMode);
+                    disableEditMode(activeMode as EditModeName);
                 } else {
                     $geomanInstance.disableDraw();
                 }
@@ -276,7 +284,7 @@
             <IconButton
                 active={activeMode === mode.id}
                 title={mode.title}
-                onclick={() => toggleDrawMode(mode.id)}
+                onclick={() => toggleDrawMode(mode.id as DrawModeName)}
             >
                 <mode.icon size={16} />
             </IconButton>
@@ -292,7 +300,7 @@
             <IconButton
                 active={activeMode === mode.id}
                 title={mode.title}
-                onclick={() => toggleEditMode(mode.id)}
+                onclick={() => toggleEditMode(mode.id as EditModeName)}
             >
                 <mode.icon size={16} />
             </IconButton>
