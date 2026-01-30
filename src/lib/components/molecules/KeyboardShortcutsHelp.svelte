@@ -52,8 +52,8 @@
 
 <button class="help-button" onclick={toggleHelp} title="Keyboard Shortcuts (?)">
     <svg
-        width="20"
-        height="20"
+        width="16"
+        height="16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -117,18 +117,18 @@
 <style>
     .help-button {
         position: absolute;
-        bottom: var(--spacing-md);
+        top: 8rem;
         right: var(--spacing-md);
         z-index: 1000;
-        width: 2.5rem;
-        height: 2.5rem;
+        width: 2rem;
+        height: 2rem;
         display: flex;
         align-items: center;
         justify-content: center;
         background-color: var(--bg-secondary);
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
-        color: var(--text-primary);
+        color: var(--text-secondary);
         cursor: pointer;
         box-shadow: var(--shadow-lg);
         transition: all var(--transition-base);
@@ -168,7 +168,7 @@
         border: 1px solid var(--border);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-xl);
-        max-width: 600px;
+        max-width: 40em;
         width: 90%;
         max-height: 80vh;
         display: flex;

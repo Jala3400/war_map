@@ -122,8 +122,8 @@
     :global(.maplibregl-ctrl-attrib) {
         background-color: var(--bg-secondary) !important;
         border: 1px solid var(--border) !important;
-        border-right: none;
-        border-bottom: none;
+        border-bottom: none !important;
+        border-right: none !important;
         color: var(--text-muted) !important;
         font-size: 0.7rem !important;
         padding: var(--spacing-xs) var(--spacing-sm) !important;
