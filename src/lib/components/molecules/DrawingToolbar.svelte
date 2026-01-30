@@ -13,7 +13,7 @@
     import TrashIcon from "$lib/components/atoms/icons/TrashIcon.svelte";
     import { geomanInstance } from "$lib/stores/geomanStore";
     import { clearKeymaps, registerKeymap } from "$lib/stores/keymapStore";
-    import { onDestroy } from "svelte";
+    import { onDestroy, onMount } from "svelte";
 
     let activeMode = $state<string | null>(null);
     let snapEnabled = $state<boolean>(true);
@@ -149,8 +149,8 @@
         }
     }
 
-    // Register keymaps
-    $effect(() => {
+    // Register keymaps on mount (not in $effect to avoid re-registration)
+    onMount(() => {
         // Drawing mode shortcuts
         registerKeymap({
             id: "draw-marker",

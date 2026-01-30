@@ -3,8 +3,9 @@
     import CompassIcon from "$lib/components/atoms/icons/CompassIcon.svelte";
     import MinusIcon from "$lib/components/atoms/icons/MinusIcon.svelte";
     import PlusIcon from "$lib/components/atoms/icons/PlusIcon.svelte";
-    import { registerKeymap } from "$lib/stores/keymapStore";
+    import { registerKeymap, unregisterKeymap } from "$lib/stores/keymapStore";
     import { mapInstance } from "$lib/stores/mapStore";
+    import { onDestroy, onMount } from "svelte";
 
     let bearing = $state(0);
 
@@ -39,8 +40,8 @@
         $mapInstance.resetNorth();
     }
 
-    // Register navigation keymaps
-    $effect(() => {
+    // Register navigation keymaps on mount (not in $effect to avoid re-registration)
+    onMount(() => {
         registerKeymap({
             id: "zoom-in",
             key: "+",
@@ -72,6 +73,13 @@
             category: "navigation",
             handler: resetNorth,
         });
+    });
+
+    onDestroy(() => {
+        unregisterKeymap("zoom-in");
+        unregisterKeymap("zoom-in-equals");
+        unregisterKeymap("zoom-out");
+        unregisterKeymap("reset-north");
     });
 </script>
 
