@@ -28,10 +28,8 @@ function createGeomanToYjsSync(yFeatures: Y.Map<any>) {
         onUpdate: (e: FeatureUpdatedFwdEvent | { feature: any }) => {
             if (e.feature) upsertFeature(e.feature);
         },
-        onCut: (e: { features: any[] }) => {
-            if (e.features && Array.isArray(e.features)) {
-                e.features.forEach(upsertFeature);
-            }
+        onCut: (e: { feature: any; originalFeature: any }) => {
+            if (e.feature) upsertFeature(e.feature);
         },
         onRemove: (e: FeatureRemovedFwdEvent) => removeFeature(e.feature),
     };
