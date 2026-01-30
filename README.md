@@ -1,42 +1,25 @@
-# sv
+# War Map Drawer
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A simple web app for drawing on maps. Built with Svelte and deployed on Cloudflare Pages.
 
-## Creating a project
+## How it works
 
-If you're seeing this, you've probably already done this step. Congrats!
+The app uses peer-to-peer (P2P) rooms for real-time collaboration. Each room has a unique ID that's included in the URL, allowing multiple users to join the same drawing session by sharing the link.
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## Features
 
-To recreate this project with the same configuration:
+- Interactive map interface
+- Drawing tools (lines, shapes, markers)
+- Keyboard shortcuts for efficient drawing (see [KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md))
+- Collaborative features via P2P rooms
 
-```sh
-# recreate this project
-pnpm dlx sv create --template minimal --types ts --install pnpm ./
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Getting Started
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm install
+pnpm run dev
 ```
 
-## Building
+## Deployment
 
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment instructions.
