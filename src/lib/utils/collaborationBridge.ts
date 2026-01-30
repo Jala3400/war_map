@@ -10,7 +10,31 @@ import type { Map as MapLibreMap } from "maplibre-gl";
 import type * as Y from "yjs";
 
 /**
- * Logic to sync local Geoman changes to remote Y.js shared state
+ * Get local feature IDs from Geoman
+ */
+function getLocalFeatureIds(geoman: Geoman): Set<string> {
+    const localFeatures = geoman.features.exportGeoJson().features;
+    return new Set(
+        localFeatures
+            .map((f) => f.id?.toString())
+            .filter((id): id is string => !!id),
+    );
+}
+
+/**
+ * Wrap a handler to skip execution during remote changes
+ */
+function wrapHandler<T>(
+    handler: (e: T) => void,
+    isApplyingRemoteChange: () => boolean,
+) {
+    return (e: T) => {
+        if (!isApplyingRemoteChange()) handler(e);
+    };
+}
+
+/**
+ * Create handlers for syncing Geoman changes to Yjs
  */
 function createGeomanToYjsSync(yFeatures: Y.Map<GeoJSON.Feature>) {
     const upsertFeature = (feature: FeatureData) => {
@@ -37,77 +61,49 @@ function createGeomanToYjsSync(yFeatures: Y.Map<GeoJSON.Feature>) {
 }
 
 /**
- * Get local feature IDs from Geoman
+ * Perform initial full sync from Yjs to Geoman
  */
-function getLocalFeatureIds(geoman: Geoman): Set<string> {
+function syncFromYjs(geoman: Geoman, yFeatures: Y.Map<GeoJSON.Feature>) {
+    const remoteFeatureIds = new Set(yFeatures.keys());
     const localFeatures = geoman.features.exportGeoJson().features;
-    return new Set(localFeatures.map((f) => f.id?.toString()).filter((id): id is string => !!id));
+    const localFeatureIds = new Set(
+        localFeatures
+            .map((f) => f.id?.toString())
+            .filter((id): id is string => !!id),
+    );
+
+    // Remove local features not in remote
+    for (const localFeature of localFeatures) {
+        const id = localFeature.id?.toString();
+        if (id && !remoteFeatureIds.has(id)) {
+            geoman.features.delete(id);
+        }
+    }
+
+    // Add remote features not already in local
+    for (const [id, geojson] of yFeatures.entries()) {
+        if (!localFeatureIds.has(id)) {
+            geoman.features.importGeoJson(geojson as GeoJsonImportFeature);
+        }
+    }
 }
 
-export function setupCollaborationBridge(
-    mapLib: MapLibreMap,
+/**
+ * Create observer for syncing Yjs changes to Geoman
+ */
+function createYjsToGeomanObserver(
     geoman: Geoman,
     yFeatures: Y.Map<GeoJSON.Feature>,
+    isApplyingRemoteChange: { value: boolean },
+    geomanReady: { value: boolean },
 ) {
-    let isApplyingRemoteChange = false;
-    let geomanReady = false;
-
-    const gmanSync = createGeomanToYjsSync(yFeatures);
-
-    const wrapHandler = <T>(handler: (e: T) => void) => (e: T) => {
-        if (!isApplyingRemoteChange) handler(e);
-    };
-
-    /**
-     * Full sync from Yjs to Geoman - used on initial load
-     */
-    const syncFromYjs = () => {
-        if (!geomanReady) return;
-
-        const remoteFeatureIds = new Set(yFeatures.keys());
-        const localFeatures = geoman.features.exportGeoJson().features;
-        const localFeatureIds = new Set(
-            localFeatures.map((f) => f.id?.toString()).filter((id): id is string => !!id),
-        );
-
-        // Remove local features not in remote
-        for (const localFeature of localFeatures) {
-            const id = localFeature.id?.toString();
-            if (id && !remoteFeatureIds.has(id)) {
-                geoman.features.delete(id);
-            }
-        }
-
-        // Add remote features not already in local
-        for (const [id, geojson] of yFeatures.entries()) {
-            if (!localFeatureIds.has(id)) {
-                geoman.features.importGeoJson(geojson as GeoJsonImportFeature);
-            }
-        }
-    };
-
-    // Wait for Geoman to be fully loaded before syncing
-    mapLib.once("gm:loaded", () => {
-        geomanReady = true;
-        syncFromYjs();
-    });
-
-    // Geoman -> Yjs listeners
-    mapLib.on("gm:create", wrapHandler(gmanSync.onCreate));
-    mapLib.on("gm:editend", wrapHandler(gmanSync.onUpdate));
-    mapLib.on("gm:dragend", wrapHandler(gmanSync.onUpdate));
-    mapLib.on("gm:rotateend", wrapHandler(gmanSync.onUpdate));
-    mapLib.on("gm:cut", wrapHandler(gmanSync.onCut));
-    mapLib.on("gm:remove", wrapHandler(gmanSync.onRemove));
-
-    // Yjs -> Geoman observer
-    const observer = (event: Y.YMapEvent<GeoJSON.Feature>) => {
+    return (event: Y.YMapEvent<GeoJSON.Feature>) => {
         // Skip local changes - we already have them in Geoman
         if (event.transaction.local) return;
         // Skip if Geoman not ready yet
-        if (!geomanReady) return;
+        if (!geomanReady.value) return;
 
-        isApplyingRemoteChange = true;
+        isApplyingRemoteChange.value = true;
 
         const localFeatureIds = getLocalFeatureIds(geoman);
 
@@ -128,14 +124,64 @@ export function setupCollaborationBridge(
             }
         });
 
-        isApplyingRemoteChange = false;
+        isApplyingRemoteChange.value = false;
     };
+}
 
-    yFeatures.observe(observer);
+export function setupCollaborationBridge(
+    mapLib: MapLibreMap,
+    geoman: Geoman,
+    yFeatures: Y.Map<GeoJSON.Feature>,
+) {
+    let isApplyingRemoteChange = { value: false };
+    let geomanReady = { value: false };
+
+    const gmanSync = createGeomanToYjsSync(yFeatures);
+    const yjsObserver = createYjsToGeomanObserver(
+        geoman,
+        yFeatures,
+        isApplyingRemoteChange,
+        geomanReady,
+    );
+
+    // Wait for Geoman to be fully loaded before syncing
+    mapLib.once("gm:loaded", () => {
+        geomanReady.value = true;
+        syncFromYjs(geoman, yFeatures);
+    });
+
+    // Geoman -> Yjs listeners
+    mapLib.on(
+        "gm:create",
+        wrapHandler(gmanSync.onCreate, () => isApplyingRemoteChange.value),
+    );
+    mapLib.on(
+        "gm:editend",
+        wrapHandler(gmanSync.onUpdate, () => isApplyingRemoteChange.value),
+    );
+    mapLib.on(
+        "gm:dragend",
+        wrapHandler(gmanSync.onUpdate, () => isApplyingRemoteChange.value),
+    );
+    mapLib.on(
+        "gm:rotateend",
+        wrapHandler(gmanSync.onUpdate, () => isApplyingRemoteChange.value),
+    );
+    mapLib.on(
+        "gm:cut",
+        wrapHandler(gmanSync.onCut, () => isApplyingRemoteChange.value),
+    );
+    mapLib.on(
+        "gm:remove",
+        wrapHandler(gmanSync.onRemove, () => isApplyingRemoteChange.value),
+    );
+
+    // Yjs -> Geoman observer
+    yFeatures.observe(yjsObserver);
 
     return {
         destroy: () => {
-            yFeatures.unobserve(observer);
+            yFeatures.unobserve(yjsObserver);
         },
     };
 }
