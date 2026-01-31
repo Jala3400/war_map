@@ -8,6 +8,8 @@ A simple web app for drawing on maps. Built with Svelte and deployed on Cloudfla
 
 The app uses peer-to-peer (P2P) rooms for real-time collaboration. Each room has a unique ID that's included in the URL, allowing multiple users to join the same drawing session by sharing the link.
 
+Currently it only works between tabs of the same browser, as the signaling servers have been discontinued.
+
 ## Features
 
 - Interactive map interface
