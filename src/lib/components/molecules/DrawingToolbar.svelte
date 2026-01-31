@@ -11,7 +11,7 @@
     import RotateIcon from "$lib/components/atoms/icons/RotateIcon.svelte";
     import SnapIcon from "$lib/components/atoms/icons/SnapIcon.svelte";
     import TrashIcon from "$lib/components/atoms/icons/TrashIcon.svelte";
-    import { geomanInstance } from "$lib/stores/geomanStore";
+    import { geomanInstance, activeMode } from "$lib/stores/geomanStore";
     import { clearKeymaps, registerKeymap } from "$lib/stores/keymapStore";
     import type {
         DrawModeName,
@@ -19,7 +19,6 @@
     } from "@geoman-io/maplibre-geoman-free";
     import { onDestroy, onMount } from "svelte";
 
-    let activeMode = $state<DrawModeName | EditModeName | null>(null);
     let snapEnabled = $state(true);
 
     // Enable snapping when geoman instance is ready
@@ -51,20 +50,20 @@
         if (!$geomanInstance) return;
 
         // If clicking the active mode, disable it
-        if (activeMode === mode) {
+        if ($activeMode === mode) {
             $geomanInstance.disableDraw();
-            activeMode = null;
+            $activeMode = null;
             return;
         }
 
         // Disable any active mode first
-        if (activeMode) {
+        if ($activeMode) {
             if (
                 ["change", "drag", "rotate", "cut", "delete"].includes(
-                    activeMode,
+                    $activeMode,
                 )
             ) {
-                disableEditMode(activeMode as EditModeName);
+                disableEditMode($activeMode as EditModeName);
             } else {
                 $geomanInstance.disableDraw();
             }
@@ -72,27 +71,27 @@
 
         // Enable the new drawing mode
         $geomanInstance.enableDraw(mode);
-        activeMode = mode;
+        $activeMode = mode;
     }
 
     function toggleEditMode(mode: EditModeName) {
         if (!$geomanInstance) return;
 
         // If clicking the active mode, disable it
-        if (activeMode === mode) {
+        if ($activeMode === mode) {
             disableEditMode(mode);
-            activeMode = null;
+            $activeMode = null;
             return;
         }
 
         // Disable any active mode first
-        if (activeMode) {
+        if ($activeMode) {
             if (
                 ["change", "drag", "rotate", "cut", "delete"].includes(
-                    activeMode,
+                    $activeMode,
                 )
             ) {
-                disableEditMode(activeMode as EditModeName);
+                disableEditMode($activeMode as EditModeName);
             } else {
                 $geomanInstance.disableDraw();
             }
@@ -100,7 +99,7 @@
 
         // Enable the new edit mode
         enableEditMode(mode);
-        activeMode = mode;
+        $activeMode = mode;
     }
 
     function enableEditMode(mode: EditModeName) {
@@ -257,17 +256,17 @@
             description: "Cancel Active Mode",
             category: "general",
             handler: () => {
-                if (!$geomanInstance || !activeMode) return;
+                if (!$geomanInstance || !$activeMode) return;
                 if (
                     ["change", "drag", "rotate", "cut", "delete"].includes(
-                        activeMode,
+                        $activeMode,
                     )
                 ) {
-                    disableEditMode(activeMode as EditModeName);
+                    disableEditMode($activeMode as EditModeName);
                 } else {
                     $geomanInstance.disableDraw();
                 }
-                activeMode = null;
+                $activeMode = null;
             },
         });
     });
@@ -282,7 +281,7 @@
     <div class="tool-group">
         {#each drawingModes as mode}
             <IconButton
-                active={activeMode === mode.id}
+                active={$activeMode === mode.id}
                 title={mode.title}
                 onclick={() => toggleDrawMode(mode.id as DrawModeName)}
             >
@@ -298,7 +297,7 @@
     <div class="tool-group">
         {#each editModes as mode}
             <IconButton
-                active={activeMode === mode.id}
+                active={$activeMode === mode.id}
                 title={mode.title}
                 onclick={() => toggleEditMode(mode.id as EditModeName)}
             >
